@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="top">
+      <h1>National Pokedex</h1>
+      <div class="pokemon">
+        <div class="info">
+          <img
+            id="img_pokemon"
+            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/25.gif"
+            alt=""
+          />
+          <div class="texts">
+            <div class="title">
+              <p id="p_numero">No.25</p>
+              <p id="p_nome">Pikachu</p>
+            </div>
+            <p id="p_genre" class="text">Type: Mouse pokemon</p>
+            <div id="div_type" class="text">Type:</div>
+            <p id="p_height" class="text">Height: 40cm</p>
+            <p id="p_weight" class="text">Wieght: 6kg</p>
+          </div>
+        </div>
+        <div id="div_description">
+          It raises its tail to check its surroundings.<br />
+          The tail is sometimes struck by lightning <br />
+          in this pose.
+        </div>
+      </div>
+    </div>
+    <div id="slide_bar"></div>
+    <input id="input_pokemon" type="text" />
+    <button onclick="pesquisarEspecifico()">Buscar</button>
+  </body>
+</html>
+
+<script>
+  var coresTipos = {
+    normal: "#A8A878",
+    fire: "#F08030",
+    water: "#6890F0",
+    grass: "#78C850",
+    electric: "#F8D030",
+    ice: "#98D8D8",
+    fighting: "#C03028",
+    poison: "#A040A0",
+    ground: "#E0C068",
+    flying: "#A890F0",
+    psychic: "#F85888",
+    bug: "#A8B820",
+    rock: "#B8A038",
+    ghost: "#705898",
+    dragon: "#7038F8",
+    dark: "#705848",
+    steel: "#B8B8D0",
+    fairy: "#EE99AC",
+  };
+  var pokemon = 0;
+  function pesquisarEspecifico() {
+    pokemon = input_pokemon.value.toLowerCase().trim();
+    pesquisar(pokemon);
+  }
+  function pesquisar(pokemon) {
+    playSound();
+    fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
+      .then(function (response) {
+        if (response.ok) {
+          response.json().then(function (resposta) {
+            console.log(resposta);
+
+            p_numero.innerHTML = `No.${resposta.id}`;
+            img_pokemon.src = resposta.sprites.other.showdown.front_default;
+            p_nome.innerHTML = `${resposta.name.toUpperCase()}`;
+
+            p_height.innerHTML = `Height: ${resposta.height / 10} m`;
+            p_weight.innerHTML = `Weight: ${resposta.weight / 10} kg`;
+            var tiposHTML = "Type: ";
+            for (var i = 0; i < resposta.types.length; i++) {
+              var nomeTipo = resposta.types[i].type.name;
+              var corTipo = coresTipos[nomeTipo] || "#777";
+
+              tiposHTML += `<span style="
+                        background-color: ${corTipo};
+                        color: white;
+                        padding: 2px 12px;
+                        border-radius: 15px;
+                        margin: 0 3px;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        font-size: 0.85em;">${nomeTipo}
+                    </span>`;
+            }
+            div_type.innerHTML = `${tiposHTML}`;
+          });
+        } else {
+          throw new Error(
+            `Pokémon '${pokemon}' não encontrado. (Status: ${response.status})`
+          );
+        }
+      })
+
+      .catch(function (error) {
+        console.error("Erro ao processar a requisição:", error.message);
+        p_nome.innerHTML = `Erro: ${error.message}`;
+
+        p_numero.innerHTML = "";
+        img_pokemon.src = "";
+        p_height.innerHTML = "";
+        p_weight.innerHTML = "";
+      });
+
+    fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemon}/`)
+      .then(function (response) {
+        if (response.ok) {
+          response.json().then(function (resposta) {
+            console.log(
+              "genero: ",
+              resposta.flavor_text_entries[0].flavor_text
+            );
+            div_description.innerHTML = `${resposta.flavor_text_entries[0].flavor_text}`;
+            p_genre.innerHTML = resposta.genera[7].genus;
+          });
+        } else {
+          throw new Error(
+            `Pokémon '${pokemon}' não encontrado. (Status: ${response.status})`
+          );
+        }
+      })
+
+      .catch(function (error) {
+        console.error("Erro ao processar a requisição:", error.message);
+      });
+  }
+  slideInfo = "";
+  function slideScreen() {
+    for (var i = 1; i < 160; i++) {
+      slideInfo += `<div onclick = 'pesquisar(${i})'>
+      <img
+        src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/${i}.png"
+        alt=""
+      />
+    <p>0${i}</p></div>`;
+    }
+
+    slide_bar.innerHTML = slideInfo;
+  }
+  slideScreen();
+  function playSound() {
+    var som = new Audio("clicksound.mp3");
+    som.play();
+  }
+</script>
